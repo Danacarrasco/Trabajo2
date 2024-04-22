@@ -1,0 +1,263 @@
+---
+  document-css: false
+  link-citations: true
+  date-format: long
+  lang: en
+  title: Practico2
+  author: Dana Carrasco
+  editor: visual
+  bibliography:
+    - Trabajo1R.bib
+---
+
+```{r}
+pacman::p_load(dplyr, sjmisc, car, sjlabelled, stargazer, haven, ggplot2, kableExtra, sjPlot)
+```
+
+## Brechas de género: La conciliación de la doble presencia
+
+El presente trabajo tiene por objetivo estudiar la brecha de género en torno a la distribución de las labores domésticas o trabajo reproductivo en el marco de la doble presencia que realizan las mujeres en Chile. Debido a la actual situación de presencialidad a la que se ven expuestas las mujeres al mismo tiempo en el trabajo reproductivo como en el trabajo remunerado. Como hipotesis de trabajo, tenemos que a medida que aumentan las horas de trabajo de la mujer, aumenta la ocupación del tiempo en labores domesticas del hombre. Además es relevante analizar cómo se divide el mercado laboral con la creciente participación de las mujeres en este, la cual en comparación con los hombres sigue siendo más baja según la CASEN (2022)  este fenómeno presenta  un aumento en la participación laboral de las mujeres, que pasó de 43,5% en 2006 a 52,0% en 2022, y a su vez la participación de los hombres se ha mantenido, si bien, con altos y bajos, en torno al 73% desde el inicio del período.
+
+Sin embargo, esta división del mercado del trabajo trae consigo no tan solo pocas herramientas para enfrentarse al mercado laboral y a su vez a los cambios en el trabajo del hogar sino también en la ocupación del tiempo dentro del trabajo remunerado. Planteando así que "la teoría del mercado dual utiliza a la familia contra el empleo y se sustituye la tradicional división sexual del trabajo por una división sexual del tiempo de trabajo: el tiempo completo para los hombres, el tiempo parcial para las mujeres" (Icart, Santamaría, 2016) [ver @ignasibruneticart2016] . De esta forma, las mujeres dedicarían menos tiempo al trabajo remunerado y mayor tiempo a las labores domésticas. 
+
+Existen ciertas actividades que están ligadas a la mujer socialmente. y que con ciertas particularidades se definen como trabajo reproductivo, este es  aquel que comprende acciones de cuidado y atención a la familia y el hogar. La singularidad que tiene el trabajo reproductivo es que este no es remunerado con un salario por lo que queda fuera del mercado laboral. Además se le atribuyen exclusivamente a la mujer debido a construcciones sociales "Esa construcción que, en síntesis, convierte a las hembras en sujetos femeninos, orientados centralmente hacia el trabajo de la reproducción y a los machos, en sujetos masculinos, centrados básicamente en el trabajo de la producción." (Carrasquer, 1998) feminizando de esa forma las labores de la esfera privada y  teniendo así que ejercer una "doble presencia" para las mujeres  y compatibilizar su trabajo reproductivo en el hogar con su vida laboral o productiva. Otra característica del trabajo reproductivo es la invisibilización del mismo por la sociedad y por las mismas mujeres que lo realizan y esto debido a que no se le considera trabajo productivo como mencionamos anteriormente (Carrasquer, 1998) [ver @pilarcarrasquerTrabajoReproductivo1998]
+
+Esto suele ser relevante, ya que cabe plantearse si en parejas con doble ingreso la situación suele ser similar. Si bien, la carga de las labores domésticas en parejas de este tipo suele distribuirse mejor, delegando así parte de estas al hombre o a externalizar estas labores, la carga global de las mujeres sigue siendo mayor cuando el hombre dedica mayor tiempo al mercado laboral, aumentando así la brecha de género y afectando al desempeño laboral de la mujer, de tal manera que "los recursos relativos de las mujeres inciden muy poco en la brecha de género en el interior de los hogares, y son las actitudes y los valores masculinos los que tienen mayor impacto en la dedicación masculina al trabajo no remunerado, y por tanto en los procesos de desigualdad." (Dominguez. Muñiz, Rubilar, 2018) [@rubilardonosoTrabajoDomesticoCuidados2018]
+
+De esta forma, la doble presencia que experimentan las mujeres en torno a trabajos remunerados y labores del hogar, generan una brecha de género que si bien, con la inserción de las mujeres al mercado laboral ha disminuido, no se ha mitigado por completo la desigualdad o la división del trabajo seuxal. generando así que el trabajo reproductivo tenga como efectos inmediatos "a pesar de no contar con una evaluación homologada y prestigiada, son: facilitar la disponibilidad laboral de los masculinos adultos del hogar-familia, en particular, y proporcionar bienestar cotidiano a los convivientes del núcleo familiar, en general" (Torns, 2008). @teresatornsTrabajoCuidadoCuestiones2008\]
+
+```{r}
+options(scipen=999)
+```
+
+```{r}
+casen2022 <- read_sav("C:/Users/mirti/OneDrive/Escritorio/Optativo R/Trabajo_1R/Base_de_datos_Casen_2022_SPSS_18_marzo_2024.sav")
+
+```
+
+```{r}
+dim(casen2022)
+```
+
+```{r}
+View(casen2022)
+```
+
+```{r}
+proc_data <- casen2022 %>% select(o1,
+                                  o2,
+                                  o6,
+                                  o7,
+                                  sexo,
+                                  activ,
+                                  asal)
+```
+
+```{r}
+proc_data$activ <- set_labels(proc_data$activ,
+                             labels = c("ocupados" = 1,
+                                        "desocupados" = 2,
+                                        "inactivos" = 3))
+```
+
+```{r}
+proc_data$sexo <- set_labels(proc_data$sexo,
+                             labels = c("Hombre" = 1,
+                                        "Mujer" = 2))
+
+```
+
+```{r}
+proc_data$asal <- set_labels(proc_data$asal,
+                             labels = c("No" = 0,
+                                        "Si" = 1))
+
+```
+
+```{r}
+proc_data <- proc_data %>% rename("trabajo_sinquehacer"=o1,
+                                  "realizo_act"=o2,
+                                  "busco_trabajo"=o6,
+                                  "razon_nobuscar"=o7)
+
+```
+
+```{r}
+names(proc_data)
+```
+
+```{r}
+proc_data$trabajo_sinquehacer <- set_labels(proc_data$trabajo_sinquehacer,
+                             labels = c("si" = 1,
+                                        "no" = 2))
+
+```
+
+```{r}
+proc_data$busco_trabajo <- set_labels(proc_data$busco_trabajo,
+                             labels = c("si" = 1,
+                                        "no" = 2))
+```
+
+```{r}
+proc_data$realizo_act <- set_labels(proc_data$realizo_act,
+                             labels = c("si" = 1,
+                                        "no" = 2))
+```
+
+```{r}
+proc_data$razon_nobuscar <- set_labels(proc_data$razon_nobuscar,
+                             labels = c("Consiguió trabajo que empezará pronto o iniciará pronto una actividad por cuenta propia" = 1,
+                                        "Esta esperando resultados" = 2,
+                                        "Tiene que cuidar niños" =3,
+                                        "Tiene que cuidar adultos mayores" = 4,
+                                        "Tiene que cuidar a otro familiar" =5,
+                                        "Esta enfermo o tiene discapacidad" = 6,
+                                        "No tiene capacitacion" = 7,
+                                        "No le acomoda en distancia, horario o reglas" = 8,
+                                        "Sueldo muy bajo" = 9,
+                                        "Realiza Quehaceres del hogar" = 10,
+                                        "Es estudiante" = 11,
+                                        "Es jubilado, montepiado o pensionado" = 12,
+                                        "Tiene otra fuente de ingreso" = 13,
+                                        "Tiene miedo a contagiarse COVID" = 14,
+                                        "Se canso de buscar" = 15,
+                                        "Cree que no hay trabajo" = 16,
+                                        "Busca cuando necesita o trabaja esporadicamente" = 17,
+                                        "No tiene interes en trabajar" = 18,
+                                        "Otra razon" = 19))
+
+```
+
+```{r}
+proc_data$activ <- set_labels(proc_data$activ,
+                             labels = c("ocupados" = 1,
+                                        "desocupados" = 2,
+                                        "inactivos" = 3))
+```
+
+```{r}
+proc_data$trabajo_sinquehacer  <- set_label(x = proc_data$trabajo_sinquehacer, label = "Trabajo almenos 1h sin quehacer")
+
+```
+
+```{r}
+proc_data$realizo_act  <- set_label(x = proc_data$realizo_act, label = "No trabajo pero realizo act")
+
+```
+
+```{r}
+proc_data$busco_trabajo  <- set_label(x = proc_data$busco_trabajo, label = "Busco trabajo ultimas 4sem")
+
+```
+
+```{r}
+proc_data$razon_nobuscar  <- set_label(x = proc_data$razon_nobuscar, label = "Razon de no buscar trabajo")
+
+```
+
+```{r}
+labeled_cols <- sapply(proc_data, function(x) !is.null(attr(x, "label")))
+
+```
+
+```{r}
+labeled_cols <- names(labeled_cols)[labeled_cols]
+
+```
+
+```{r}
+proc_data[labeled_cols] <- lapply(proc_data[labeled_cols], as.numeric)
+
+```
+
+```{r}
+sjmisc::descr(proc_data)
+
+```
+
+```{r}
+sjmisc::descr(proc_data,
+      show = c("label","range", "mean", "sd", "NA.prc", "n"))
+```
+
+```{r}
+summarytools::dfSummary(proc_data, plain.ascii = FALSE)
+```
+
+```{r}
+
+```
+
+Las medidas de tendencia central nos muestran que, en la variable con respecto a la razón de no buscar trabajo, la media es de 9,8. Lo cual estaría cercana a la categoría 10, en la cual la razón corresponde a que realizan quehaceres del hogar. Sin embargo, esta se ve afectada por los extremos de categorías 1 y 19. Por lo que no nos estaría aportando mucho.
+
+```{r}
+proc_data_original <-proc_data
+
+```
+
+```{r}
+sum(is.na(proc_data))
+```
+
+```{r}
+proc_data <-sjlabelled::copy_labels(proc_data,proc_data_original)
+```
+
+```{r}
+proc_data %>% 
+  ggplot(aes(x = razon_nobuscar)) + 
+  geom_bar(fill = "coral") +
+  ggtitle("Razon por la que no buscaron trabajo")
+```
+
+Como se menciono anteriormente, la categoría con en la cual caía la media de la cantidad de individuos que declaran su razon de no buscar trabajo es la 10, la cual corresponde a personas que no buscan trabajo por estar realizando quehaceres del hogar. Sin embargo, de las el gráfico nos muestra que la categoría con mayor cantidad es la numero 13, en la cual las personas dicen que no buscan trabajo por tener otra fuente de ingresos.
+
+```{r}
+proc_data %>% 
+  ggplot(aes(x = trabajo_sinquehacer)) + 
+  geom_bar(fill = "coral") +
+  ggtitle("Trabajo sin considerar quehacer domestico")
+```
+
+```{r}
+sjt.xtab(proc_data$razon_nobuscar, proc_data$sexo)
+
+```
+
+```{r}
+sjt.xtab(proc_data$razon_nobuscar, proc_data$sexo,
+        show.col.prc=TRUE,
+        show.summary=FALSE,
+        encoding = "UTF-8"
+)
+```
+
+Interpretacion:
+
+De las categorías que nos interesan, que son la 3 "tiene que cuidar niños", 4 "tiene que cuidar adultos mayores", 5 "tiene que cuidar a otro" y la 10 "tiene que realizar quehaceres del hogar". Dividida además por sexo donde 1 correspondría a hombres y 2 a mujeres. Los resultados nos muestran que, un 0,5% de los hombres no busca trabajo por cuidar niños en comparación a una cantidad mayor de mujeres que corresponde a un 12,9%. Para la categoría de "cuidar adultos mayores" solo un 1,2% de los hombres no buscan trabajo por esta razón y un 3,4% de las mujeres no lo hace. Un 0,8% de los hombres no busca trabajo por estar cuidando a otra persona o familiar, por su parte un 2,1% de las mujeres no lo hace por la misma razón. En el caso de no buscar trabajo por estar realizando quehaceres del hogar, un 1,1% de los hombres no busca trabajo por esta razón, sin embargo una cantidad mucho mayor de mujeres no busca trabajo por realizar quehaceres domésticos con un 15,4%. En todos los casos, las labores de cuidado y domesticas son la razon por la cual más mujeres que hombres no pueden buscar trabajo.
+
+```{r}
+sjt.xtab(proc_data$trabajo_sinquehacer, proc_data$sexo,
+         show.col.prc=TRUE,
+        show.summary=FALSE,
+        encoding = "UTF-8")
+```
+
+```{r}
+sjt.xtab(proc_data$busco_trabajo, proc_data$sexo,
+         show.col.prc=TRUE,
+        show.summary=FALSE,
+        encoding = "UTF-8")
+```
+
+```{r}
+sjt.xtab(proc_data$activ, proc_data$sexo,
+         show.col.prc=TRUE,
+        show.summary=FALSE,
+        encoding = "UTF-8")
+```
+
+Interpretación:
+
+En el primer caso, las personas ocupadas, corresponden más a hombres que mujeres tienendo respectivamente un 62,2% y un 42,3%. Siendo más los hombres los ocupados que las mujeres.
